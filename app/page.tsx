@@ -151,7 +151,7 @@ export default function LandingPage() {
               Transform invisible contributions into measurable impact.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <ShinyButton size="lg" className="h-12 px-8">
+              <ShinyButton className="h-12 px-8">
                 Start Free with GitHub
                 <ArrowRight className="ml-2 h-4 w-4" />
               </ShinyButton>

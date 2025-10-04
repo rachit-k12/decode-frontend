@@ -1,18 +1,16 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { MilestoneDetail } from "@/components/milestones/MilestoneDetail";
-import { DetailSkeleton } from "@/components/shared/DetailSkeleton";
 
 interface MilestoneDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: MilestoneDetailPageProps) {
+  const { id } = await params;
   // In production, fetch milestone data for OG metadata
   return {
-    title: `Milestone Celebration | ${params.id}`,
+    title: `Milestone Celebration | ${id}`,
     description: "Celebrate this open source milestone achievement",
     openGraph: {
       title: "Milestone Achievement!",
@@ -22,18 +20,21 @@ export async function generateMetadata({ params }: MilestoneDetailPageProps) {
   };
 }
 
-export default function MilestoneDetailPage({
+export default async function MilestoneDetailPage({
   params,
 }: MilestoneDetailPageProps) {
-  if (!params.id) {
+  const { id } = await params;
+
+  if (!id) {
     notFound();
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Suspense fallback={<DetailSkeleton />}>
-        <MilestoneDetail milestoneId={params.id} />
-      </Suspense>
+    <div className="min-h-screen bg-background p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-semibold mb-4">Milestone Celebration</h1>
+        <p className="text-muted-foreground">Milestone ID: {id}</p>
+      </div>
     </div>
   );
 }
