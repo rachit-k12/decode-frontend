@@ -1,0 +1,199 @@
+@import './fonts.css';
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme - using HSL values for easier manipulation */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+    
+    /* Semantic colors */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --error: 0 84.2% 60.2%;
+    --info: 217 91% 60%;
+    
+    /* Chart colors */
+    --chart-1: 0 72% 51%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 50%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 142 76% 36%;
+  }
+
+  .dark {
+    /* Dark theme - default for this project */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    
+    /* Semantic colors - adjusted for dark mode */
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --error: 0 84.2% 60.2%;
+    --info: 217 91% 60%;
+    
+    /* Chart colors - brighter for dark mode */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  body {
+    @apply text-primary font-grotesk text-md leading-relaxed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer utilities {
+  /* Navigation underline effect */
+  .nav-underline {
+    @apply relative;
+  }
+
+  .nav-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1.5px;
+    background: var(--primary);
+    transition: width 0.3s ease-in-out;
+  }
+
+  .nav-underline:hover::after {
+    width: 100%;
+  }
+}
+
+@theme inline {
+  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
+  --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
+
+  @keyframes shimmer-slide {
+    to {
+      transform: translate(calc(100cqw - 100%), 0);
+    }
+  }
+  @keyframes spin-around {
+    0% {
+      transform: translateZ(0) rotate(0);
+    }
+    15%,
+    35% {
+      transform: translateZ(0) rotate(90deg);
+    }
+    65%,
+    85% {
+      transform: translateZ(0) rotate(270deg);
+    }
+    100% {
+      transform: translateZ(0) rotate(360deg);
+    }
+  }
+
+  --animate-orbit: orbit calc(var(--duration) * 1s) linear infinite;
+
+  @keyframes orbit {
+    0% {
+      transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px))
+        rotate(calc(var(--angle) * -1deg));
+    }
+    100% {
+      transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px))
+        rotate(calc((var(--angle) * -1deg) - 360deg));
+    }
+  }
+
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes rainbow-move {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+  .animate-rainbow-move {
+    animation: rainbow-move 3s linear infinite;
+  }
+
+  --animate-meteor-effect: meteor 5s linear infinite;
+
+  @keyframes meteor {
+    0% {
+      transform: rotate(215deg) translateX(0);
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: rotate(215deg) translateX(-500px);
+      opacity: 0;
+    }
+  }
+}

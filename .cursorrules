@@ -1,0 +1,134 @@
+# Frontend Orchestration System - Cursor Rules
+
+## Project Overview
+
+This is a production-grade Next.js application with three main features:
+
+1. Maintainer Dashboard - Activity tracking and sentiment analysis
+2. Milestone Celebrations - Achievement tracking with social sharing
+3. Discoverability Engine - OSS project search and filtering
+
+## Tech Stack
+
+- Next.js 14+ (App Router)
+- TypeScript (strict mode)
+- Tailwind CSS
+- shadcn/ui (primary component library)
+- Magic UI, React Bits, Aceternity UI (enhancements)
+- TanStack Query v5 (data fetching/caching)
+- Framer Motion (animations)
+
+## Agent System
+
+This project uses a multi-agent orchestration system:
+
+- **Orchestrator Agent**: Coordinates all agents, maintains shared context
+- **Design Agents**: Create UI/UX designs following design system
+- **Build Agents**: Implement features with production-quality code
+- **Browser Agent**: Validate UI states and accessibility
+
+Refer to `/orchestration/agents/*.md` for detailed agent instructions.
+
+## Design System Rules
+
+### Colors & Theme
+
+- Dark theme by default using CSS variables
+- All colors defined in `app/theme.ts` and applied via CSS custom properties
+- No hardcoded colors - always use semantic tokens
+- Ensure WCAG AA contrast compliance (4.5:1 for text)
+
+### Typography
+
+- NEVER use `font-bold` - use `font-medium` or `font-semibold` instead
+- Use semantic font sizes from design system (text-sm, text-base, text-lg, etc.)
+- Line heights optimized for readability (1.5-1.7 for body text)
+
+### Spacing & Layout
+
+- Use consistent spacing scale (4px base unit)
+- Mobile-first responsive design (99% of users are on mobile)
+- Prefer grid/flexbox, avoid absolute positioning unless necessary
+
+### Components
+
+- Primary: shadcn/ui components
+- Enhancements: Magic UI (animations), React Bits (advanced patterns), Aceternity UI (effects)
+- Always implement skeleton states for loading
+- Always implement empty and error states
+- All interactive elements must be keyboard accessible
+
+### Accessibility Requirements
+
+- All images must have alt text
+- All buttons/links must have aria-labels when text is not visible
+- Maintain focus-visible states
+- Support keyboard navigation (Tab, Enter, Escape, Arrow keys)
+- Screen reader friendly (proper ARIA roles and labels)
+- Color contrast compliance
+
+### Data Fetching
+
+- Use TanStack Query v5 for all API calls
+- Define query keys in `/shared/query-keys.ts`
+- Implement proper error boundaries
+- Use suspense boundaries where appropriate
+- Cache policies defined in shared context
+
+### Animation
+
+- Subtle, purposeful animations only
+- Use Framer Motion for complex animations
+- Respect prefers-reduced-motion
+- Animation durations: 150-300ms for micro-interactions, 300-500ms for transitions
+
+### Code Quality
+
+- TypeScript strict mode enabled
+- No `any` types - use `unknown` or proper types
+- Prefer server components, use "use client" only when needed
+- Extract reusable logic into custom hooks
+- Keep components small and focused (< 200 lines)
+
+### File Organization
+
+- Components in `/components` (grouped by domain)
+- Hooks in `/hooks`
+- Utilities in `/lib` and `/utils`
+- Types in same file or `/types` for shared types
+- Route handlers in `/app/api`
+
+## Performance
+
+- Lazy load heavy components
+- Optimize images (use Next.js Image component)
+- Implement proper caching strategies
+- Monitor bundle size
+- Use React Server Components for static content
+
+## Shared Context
+
+All agents must reference `/orchestration/shared-context.json` for:
+
+- Design tokens
+- Component usage patterns
+- Query keys and caching policies
+- Accessibility checklist
+
+## Development Workflow
+
+1. Orchestrator assigns tasks to specialized agents
+2. Design agents create mockups following design system
+3. Build agents implement features
+4. Browser agent validates UI states and accessibility
+5. Orchestrator reviews and ensures consistency
+
+## MCP Integrations
+
+Design agents use MCPs to fetch:
+
+- shadcn/ui component examples
+- Magic UI animation patterns
+- React Bits advanced components
+- Aceternity UI effects
+- Tailwind design inspiration

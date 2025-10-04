@@ -1,0 +1,483 @@
+{
+    "version": "1.0.0",
+    "lastUpdated": "2025-10-04T00:00:00Z",
+    "project": {
+        "name": "OSS Frontend Platform",
+        "description": "Production-grade frontend for Maintainer Dashboard, Milestone Celebrations, and Discoverability Engine",
+        "techStack": {
+            "framework": "Next.js 14+",
+            "language": "TypeScript (strict)",
+            "styling": "Tailwind CSS",
+            "dataFetching": "TanStack Query v5",
+            "animation": "Framer Motion"
+        }
+    },
+    "designTokens": {
+        "colors": {
+            "light": {
+                "background": "0 0% 100%",
+                "foreground": "240 10% 3.9%",
+                "card": "0 0% 100%",
+                "cardForeground": "240 10% 3.9%",
+                "popover": "0 0% 100%",
+                "popoverForeground": "240 10% 3.9%",
+                "primary": "240 5.9% 10%",
+                "primaryForeground": "0 0% 98%",
+                "secondary": "240 4.8% 95.9%",
+                "secondaryForeground": "240 5.9% 10%",
+                "muted": "240 4.8% 95.9%",
+                "mutedForeground": "240 3.8% 46.1%",
+                "accent": "240 4.8% 95.9%",
+                "accentForeground": "240 5.9% 10%",
+                "destructive": "0 84.2% 60.2%",
+                "destructiveForeground": "0 0% 98%",
+                "border": "240 5.9% 90%",
+                "input": "240 5.9% 90%",
+                "ring": "240 5.9% 10%"
+            },
+            "dark": {
+                "background": "240 10% 3.9%",
+                "foreground": "0 0% 98%",
+                "card": "240 10% 3.9%",
+                "cardForeground": "0 0% 98%",
+                "popover": "240 10% 3.9%",
+                "popoverForeground": "0 0% 98%",
+                "primary": "0 0% 98%",
+                "primaryForeground": "240 5.9% 10%",
+                "secondary": "240 3.7% 15.9%",
+                "secondaryForeground": "0 0% 98%",
+                "muted": "240 3.7% 15.9%",
+                "mutedForeground": "240 5% 64.9%",
+                "accent": "240 3.7% 15.9%",
+                "accentForeground": "0 0% 98%",
+                "destructive": "0 62.8% 30.6%",
+                "destructiveForeground": "0 0% 98%",
+                "border": "240 3.7% 15.9%",
+                "input": "240 3.7% 15.9%",
+                "ring": "240 4.9% 83.9%"
+            },
+            "semantic": {
+                "success": "142 76% 36%",
+                "warning": "38 92% 50%",
+                "error": "0 84.2% 60.2%",
+                "info": "217 91% 60%"
+            }
+        },
+        "typography": {
+            "fontFamily": {
+                "sans": [
+                    "FoundersGrotesk",
+                    "system-ui",
+                    "sans-serif"
+                ],
+                "heading": [
+                    "TWKEverett",
+                    "system-ui",
+                    "sans-serif"
+                ],
+                "mono": [
+                    "ui-monospace",
+                    "monospace"
+                ]
+            },
+            "fontSize": {
+                "xs": "0.75rem",
+                "sm": "0.875rem",
+                "base": "1rem",
+                "lg": "1.125rem",
+                "xl": "1.25rem",
+                "2xl": "1.5rem",
+                "3xl": "1.875rem",
+                "4xl": "2.25rem",
+                "5xl": "3rem"
+            },
+            "fontWeight": {
+                "light": 300,
+                "normal": 400,
+                "medium": 500,
+                "semibold": 600
+            },
+            "lineHeight": {
+                "tight": 1.25,
+                "normal": 1.5,
+                "relaxed": 1.75
+            },
+            "letterSpacing": {
+                "tight": "-0.025em",
+                "normal": "0",
+                "wide": "0.025em"
+            }
+        },
+        "spacing": {
+            "xs": "0.25rem",
+            "sm": "0.5rem",
+            "md": "1rem",
+            "lg": "1.5rem",
+            "xl": "2rem",
+            "2xl": "3rem",
+            "3xl": "4rem"
+        },
+        "borderRadius": {
+            "sm": "0.375rem",
+            "md": "0.5rem",
+            "lg": "0.75rem",
+            "xl": "1rem",
+            "full": "9999px"
+        },
+        "shadows": {
+            "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+            "md": "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+            "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+            "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1)"
+        },
+        "animation": {
+            "duration": {
+                "fast": "150ms",
+                "normal": "300ms",
+                "slow": "500ms"
+            },
+            "easing": {
+                "easeIn": "cubic-bezier(0.4, 0, 1, 1)",
+                "easeOut": "cubic-bezier(0, 0, 0.2, 1)",
+                "easeInOut": "cubic-bezier(0.4, 0, 0.2, 1)"
+            }
+        }
+    },
+    "componentLibrary": {
+        "primary": {
+            "name": "shadcn/ui",
+            "usage": "Foundation components - Button, Input, Card, Dialog, Select, Tabs, etc.",
+            "priority": 1,
+            "customization": "Use design tokens for theming"
+        },
+        "secondary": [
+            {
+                "name": "Magic UI",
+                "usage": "Animations and micro-interactions",
+                "components": [
+                    "ShimmerButton",
+                    "TextReveal",
+                    "FlickeringGrid",
+                    "ScrollProgress"
+                ],
+                "priority": 2
+            },
+            {
+                "name": "React Bits",
+                "usage": "Advanced patterns and complex components",
+                "components": [
+                    "DataTable",
+                    "AdvancedForms",
+                    "Charts"
+                ],
+                "priority": 3
+            },
+            {
+                "name": "Aceternity UI",
+                "usage": "Visual effects and hero sections",
+                "components": [
+                    "BackgroundBeams",
+                    "Sparkles",
+                    "Cover",
+                    "StickyScroll"
+                ],
+                "priority": 4
+            }
+        ]
+    },
+    "accessibility": {
+        "standards": "WCAG 2.1 Level AA",
+        "checklist": [
+            "All interactive elements keyboard accessible",
+            "Focus indicators visible (focus-visible)",
+            "ARIA labels for icon-only buttons",
+            "ARIA roles for custom components",
+            "Alt text for all images",
+            "Color contrast 4.5:1 minimum for text",
+            "Color contrast 3:1 minimum for interactive elements",
+            "Text can scale to 200%",
+            "Screen reader tested",
+            "Skip links for keyboard navigation",
+            "Error messages announced to screen readers",
+            "Respect prefers-reduced-motion"
+        ],
+        "keyboardShortcuts": {
+            "global": {
+                "Tab": "Navigate forward",
+                "Shift+Tab": "Navigate backward",
+                "Enter": "Activate button/link",
+                "Space": "Activate button/checkbox",
+                "Escape": "Close modal/dropdown",
+                "/": "Focus search input"
+            },
+            "lists": {
+                "ArrowUp": "Previous item",
+                "ArrowDown": "Next item",
+                "Home": "First item",
+                "End": "Last item"
+            }
+        }
+    },
+    "dataContracts": {
+        "queryKeys": {
+            "maintainer": {
+                "all": [
+                    "maintainer"
+                ],
+                "lists": [
+                    "maintainer",
+                    "list"
+                ],
+                "detail": [
+                    "maintainer",
+                    "detail",
+                    "{id}"
+                ],
+                "activity": [
+                    "maintainer",
+                    "detail",
+                    "{id}",
+                    "activity"
+                ],
+                "sentiment": [
+                    "maintainer",
+                    "detail",
+                    "{id}",
+                    "sentiment"
+                ]
+            },
+            "milestones": {
+                "all": [
+                    "milestones"
+                ],
+                "lists": [
+                    "milestones",
+                    "list"
+                ],
+                "detail": [
+                    "milestones",
+                    "detail",
+                    "{id}"
+                ],
+                "byRepo": [
+                    "milestones",
+                    "repo",
+                    "{repoId}"
+                ]
+            },
+            "projects": {
+                "all": [
+                    "projects"
+                ],
+                "search": [
+                    "projects",
+                    "search",
+                    "{query}"
+                ],
+                "filters": [
+                    "projects",
+                    "filters"
+                ],
+                "detail": [
+                    "projects",
+                    "detail",
+                    "{id}"
+                ]
+            }
+        },
+        "cacheStrategies": {
+            "static": {
+                "staleTime": "Infinity",
+                "gcTime": 600000,
+                "description": "Never refetch (configuration, etc.)"
+            },
+            "slow": {
+                "staleTime": 300000,
+                "gcTime": 600000,
+                "description": "5 minute stale time (user profiles, project details)"
+            },
+            "medium": {
+                "staleTime": 60000,
+                "gcTime": 300000,
+                "description": "1 minute stale time (activity feeds, milestones)"
+            },
+            "fast": {
+                "staleTime": 0,
+                "gcTime": 60000,
+                "description": "Always refetch (real-time data, search)"
+            }
+        },
+        "apiEndpoints": {
+            "maintainer": {
+                "profile": "/api/maintainer/{id}",
+                "activity": "/api/maintainer/{id}/activity",
+                "sentiment": "/api/maintainer/{id}/sentiment",
+                "cv": "/api/maintainer/{id}/cv"
+            },
+            "milestones": {
+                "list": "/api/milestones",
+                "detail": "/api/milestones/{id}",
+                "generate": "/api/milestones/{id}/generate-post"
+            },
+            "projects": {
+                "search": "/api/projects/search",
+                "detail": "/api/projects/{id}",
+                "filters": "/api/projects/filters"
+            }
+        }
+    },
+    "routingStructure": {
+        "routes": [
+            {
+                "path": "/",
+                "name": "Home",
+                "description": "Landing page"
+            },
+            {
+                "path": "/maintainer",
+                "name": "Maintainer Dashboard",
+                "description": "View maintainer activity and sentiment",
+                "subroutes": [
+                    {
+                        "path": "/maintainer/[id]",
+                        "name": "Maintainer Detail",
+                        "description": "Individual maintainer profile"
+                    },
+                    {
+                        "path": "/maintainer/[id]/cv",
+                        "name": "Contribution CV",
+                        "description": "Public contribution CV with OG metadata"
+                    }
+                ]
+            },
+            {
+                "path": "/milestones",
+                "name": "Milestone Celebrations",
+                "description": "View and celebrate OSS milestones",
+                "subroutes": [
+                    {
+                        "path": "/milestones/[id]",
+                        "name": "Milestone Detail",
+                        "description": "Individual milestone celebration"
+                    }
+                ]
+            },
+            {
+                "path": "/discover",
+                "name": "Discoverability Engine",
+                "description": "Search and filter OSS projects",
+                "subroutes": [
+                    {
+                        "path": "/discover/[id]",
+                        "name": "Project Detail",
+                        "description": "Individual project details"
+                    }
+                ]
+            }
+        ]
+    },
+    "uiStates": {
+        "default": {
+            "description": "Normal state with data",
+            "requirements": [
+                "Data rendered",
+                "All interactions functional"
+            ]
+        },
+        "loading": {
+            "description": "Data is being fetched",
+            "requirements": [
+                "Skeleton screens",
+                "Maintain layout",
+                "No content shift"
+            ]
+        },
+        "empty": {
+            "description": "No data available",
+            "requirements": [
+                "Illustration",
+                "Helpful message",
+                "Clear CTA",
+                "Explanation of why empty"
+            ]
+        },
+        "error": {
+            "description": "Error occurred",
+            "requirements": [
+                "Error icon",
+                "User-friendly message",
+                "Retry button",
+                "Collapsible technical details"
+            ]
+        }
+    },
+    "responsiveBreakpoints": {
+        "mobile": {
+            "max": "767px",
+            "description": "Primary target - 99% of users",
+            "considerations": [
+                "Touch targets 44x44px",
+                "Single column layouts",
+                "Bottom navigation",
+                "Collapsible filters"
+            ]
+        },
+        "tablet": {
+            "min": "768px",
+            "max": "1023px",
+            "description": "Medium screens",
+            "considerations": [
+                "2-3 column grids",
+                "Side navigation",
+                "Larger touch targets"
+            ]
+        },
+        "desktop": {
+            "min": "1024px",
+            "description": "Large screens",
+            "considerations": [
+                "3-4 column grids",
+                "Hover states",
+                "Side panels",
+                "Multi-pane layouts"
+            ]
+        }
+    },
+    "performanceTargets": {
+        "coreWebVitals": {
+            "LCP": {
+                "target": "< 2.5s",
+                "description": "Largest Contentful Paint"
+            },
+            "CLS": {
+                "target": "< 0.1",
+                "description": "Cumulative Layout Shift"
+            },
+            "FID": {
+                "target": "< 100ms",
+                "description": "First Input Delay"
+            }
+        },
+        "bundleSize": {
+            "target": "< 200kb",
+            "description": "Initial JS bundle (gzipped)"
+        },
+        "imageOptimization": {
+            "format": "WebP with fallback",
+            "maxSize": "200kb per image",
+            "lazyLoad": true
+        }
+    },
+    "agentCommunication": {
+        "protocol": "Structured JSON messages",
+        "messageTypes": [
+            "TASK_ASSIGNMENT",
+            "STATUS_UPDATE",
+            "DESIGN_DELIVERABLE",
+            "BUILD_STATUS",
+            "VALIDATION_REPORT"
+        ],
+        "logLocation": "/orchestration/logs/",
+        "updateFrequency": "On status change or milestone completion"
+    }
+}
