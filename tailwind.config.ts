@@ -7,11 +7,12 @@ const config = {
   theme: {
     extend: {
       fontSize: {
-        sm: "0.875rem", // 14px
-        base: "1rem", // 16px
+        xs: "1rem", // 14px
+        sm: "0.875rem", // 15px
+        base: "1rem", // 17px
         md: "1.125rem", // 18px
-        lg: "1.25rem", // 20px
-        xl: "1.5rem", // 24px
+        lg: "1.3125rem", // 21px
+        xl: "1.625rem", // 26px
       },
       fontFamily: {
         grotesk: ["FoundersGrotesk", "Inter", "system-ui", "sans-serif"],

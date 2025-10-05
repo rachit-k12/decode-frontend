@@ -136,13 +136,9 @@ export default function InvisibleLaborAnalytics() {
         {/* Page Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-medium tracking-tight">
+            <h1 className="text-2xl font-medium tracking-tight">
               Invisible Labor Analytics
             </h1>
-            <p className="text-muted-foreground">
-              Comprehensive analysis of your non-code contributions and their
-              impact
-            </p>
           </div>
           <ExportButton pageName="invisible-labor-analytics" />
         </div>
@@ -242,36 +238,94 @@ export default function InvisibleLaborAnalytics() {
                 </div>
 
                 {/* Grid based on available data */}
-                <div className="grid grid-cols-7 gap-1.5">
-                  {heatMapData.map((dayData) => (
-                    <div key={dayData.date} className="relative group">
-                      <div
-                        className="w-full h-16 rounded cursor-pointer hover:ring-2 hover:ring-blue-600 transition-all flex flex-col items-center justify-center gap-0.5"
-                        style={{
-                          backgroundColor: `rgba(59, 130, 246, ${dayData.opacity})`,
-                        }}
-                      >
-                        <div className="text-[10px] font-medium text-black drop-shadow-md">
-                          {dayData.dayOfMonth}
-                        </div>
-                        <div className="text-[7px] text-black/70 drop-shadow">
-                          {dayData.dayOfWeek}
-                        </div>
-                        <div className="text-[10px] font-semibold text-black drop-shadow-md">
-                          {dayData.total}
-                        </div>
-                      </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {heatMapData.map((dayData) => {
+                    // Find matching activity data for detailed tooltip
+                    const activityData = metrics.weeklyActivity.find(
+                      (activity) => activity.date === dayData.date
+                    );
 
-                      {/* Tooltip on hover */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                        <div>{dayData.date}</div>
-                        <div>Total: {dayData.total} activities</div>
-                        <div className="text-[10px] mt-1">
-                          Activity Level: {dayData.level}/4
+                    return (
+                      <div key={dayData.date} className="relative group">
+                        <div
+                          className="w-full h-20 rounded cursor-pointer hover:ring-2 hover:ring-blue-600 transition-all flex items-center justify-center"
+                          style={{
+                            backgroundColor: `rgba(37, 99, 235, ${dayData.opacity})`,
+                          }}
+                        >
+                          <div className="text-2xl font-medium text-white">
+                            {dayData.dayOfMonth}
+                          </div>
+                        </div>
+
+                        {/* Enhanced Tooltip */}
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                          <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg whitespace-nowrap">
+                            <p className="text-sm font-medium text-gray-900 mb-2">
+                              {new Date(dayData.date).toLocaleDateString("en", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </p>
+                            {activityData ? (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                                  <span className="text-xs text-gray-600">
+                                    Reviews:
+                                  </span>
+                                  <span className="text-xs font-semibold text-gray-900">
+                                    {activityData.reviews}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                                  <span className="text-xs text-gray-600">
+                                    Triage:
+                                  </span>
+                                  <span className="text-xs font-semibold text-gray-900">
+                                    {activityData.triage}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                                  <span className="text-xs text-gray-600">
+                                    Mentorship:
+                                  </span>
+                                  <span className="text-xs font-semibold text-gray-900">
+                                    {activityData.mentorship}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2.5 w-2.5 rounded-full bg-purple-500" />
+                                  <span className="text-xs text-gray-600">
+                                    Documentation:
+                                  </span>
+                                  <span className="text-xs font-semibold text-gray-900">
+                                    {activityData.documentation}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2.5 w-2.5 rounded-full bg-pink-500" />
+                                  <span className="text-xs text-gray-600">
+                                    Discussions:
+                                  </span>
+                                  <span className="text-xs font-semibold text-gray-900">
+                                    {activityData.discussions}
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-xs text-gray-600">
+                                Total: {dayData.total} activities
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ) : (

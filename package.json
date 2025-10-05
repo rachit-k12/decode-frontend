@@ -1,8 +1,8 @@
 {
-  "name": "dkmc",
+  "name": "foozi",
   "version": "1.0.0",
   "private": true,
-  "description": "DKMC - Developer & Maintainer Dashboard that surfaces maintainer efforts including reviews, discussions, issue triage, PR comments, mentorship, docs, and CI fixes",
+  "description": "Foozi - Open Source Maintainer Dashboard that tracks invisible labor including code reviews, issue triage, mentorship, community engagement, and burnout prevention",
   "scripts": {
     "dev": "rm -rf .next && next dev --turbopack",
     "build": "next build",

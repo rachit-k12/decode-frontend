@@ -143,13 +143,9 @@ export default function RepositoryHealth() {
         {/* Page Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-medium tracking-tight">
+            <h1 className="text-2xl font-medium tracking-tight">
               Repository Health Dashboard
             </h1>
-            <p className="text-muted-foreground">
-              Monitor health metrics and contributor patterns across all
-              maintained repositories
-            </p>
           </div>
           <ExportButton pageName="repository-health" />
         </div>

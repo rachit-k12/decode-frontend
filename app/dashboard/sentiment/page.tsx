@@ -8,6 +8,7 @@ import {
   MultiLineChart,
   DistributionPieChart,
 } from "@/components/dashboard/ActivityChart";
+import { FeedbackWordCloud } from "@/components/dashboard/FeedbackWordCloud";
 import { useDashboardData } from "@/hooks/queries/useMaintainerData";
 import { useUsername } from "@/contexts/UsernameContext";
 import {
@@ -159,13 +160,9 @@ export default function SentimentAnalysis() {
         {/* Page Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-medium tracking-tight">
+            <h1 className="text-2xl font-medium tracking-tight">
               Sentiment Analysis & Community Health
             </h1>
-            <p className="text-muted-foreground">
-              Monitor community feedback patterns and maintain positive project
-              environments
-            </p>
           </div>
           <ExportButton pageName="sentiment-analysis" />
         </div>
@@ -303,27 +300,7 @@ export default function SentimentAnalysis() {
           title="Feedback Word Cloud"
           subtitle="Most frequently mentioned terms in community feedback"
         >
-          <div className="flex flex-wrap gap-2 p-6">
-            {sentiment.wordFrequency.map((word) => {
-              const size = Math.max(0.75, Math.min(2, word.count / 20));
-              const color =
-                word.sentiment === "positive"
-                  ? "text-emerald-500"
-                  : word.sentiment === "negative"
-                    ? "text-rose-500"
-                    : "text-slate-500";
-
-              return (
-                <span
-                  key={word.word}
-                  className={`inline-block px-2 py-1 ${color} font-normal`}
-                  style={{ fontSize: `${size}rem` }}
-                >
-                  {word.word}
-                </span>
-              );
-            })}
-          </div>
+          <FeedbackWordCloud words={sentiment.wordFrequency} />
         </ChartContainer>
 
         {/* Charts Row */}

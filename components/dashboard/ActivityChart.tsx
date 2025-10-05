@@ -109,29 +109,27 @@ export function DistributionPieChart({ data }: DistributionPieChartProps) {
   const PieTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0];
-      const percentage = data.payload.percentage;
       return (
-        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <div
-              className="h-4 w-4 rounded-full ring-2 ring-white shadow-sm"
-              style={{ backgroundColor: data.payload.fill }}
-            />
-            <span className="text-base font-semibold text-gray-900">
-              {data.name}
-            </span>
-          </div>
-          <div className="space-y-1 pl-6">
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs text-gray-500">Value:</span>
-              <span className="text-lg font-bold text-gray-900">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+          <p className="text-sm font-medium text-gray-900 mb-2">
+            {data.payload.category}
+          </p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: data.payload.fill }}
+              />
+              <span className="text-xs text-gray-600">Count:</span>
+              <span className="text-xs font-semibold text-gray-900">
                 {data.value}
               </span>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs text-gray-500">Percentage:</span>
-              <span className="text-base font-semibold text-gray-700">
-                {percentage}%
+            <div className="flex items-center gap-2">
+              <div className="h-2.5 w-2.5 rounded-full opacity-0" />
+              <span className="text-xs text-gray-600">Share:</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {data.payload.percentage}%
               </span>
             </div>
           </div>

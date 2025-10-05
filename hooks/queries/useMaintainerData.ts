@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchDashboardData } from "@/lib/api";
+import type { SentimentAnalysis } from "@/types/dashboard";
 
 // Main dashboard data interface matching the API response
 export interface DashboardData {
@@ -57,22 +58,7 @@ export interface DashboardData {
       sentiment: Array<{ date: string; value: number }>;
     };
   };
-  sentiment: {
-    score: number;
-    trend: string;
-    wordFrequency: Array<{
-      word: string;
-      count: number;
-      sentiment: string;
-    }>;
-    feedbackDistribution: {
-      constructive: number;
-      appreciative: number;
-      critical: number;
-      neutral: number;
-    };
-    topPositiveFeedback: string[];
-    concernAreas: string[];
+  sentiment: SentimentAnalysis & {
     // TODO: Backend needs to add this field per OPENAPI_SPEC_COMPLETE.md
     multiLineTrend?: {
       overall: Array<{ date: string; value: number }>;

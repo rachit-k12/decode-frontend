@@ -112,10 +112,10 @@ export default function BurnoutAssessment() {
   };
 
   const getRiskBgColor = (score: number) => {
-    if (score < 30) return "bg-green-50 dark:bg-green-950/20";
-    if (score < 50) return "bg-yellow-50 dark:bg-yellow-950/20";
-    if (score < 70) return "bg-orange-50 dark:bg-orange-950/20";
-    return "bg-red-50 dark:bg-red-950/20";
+    if (score < 30) return "bg-green-50";
+    if (score < 50) return "bg-yellow-50";
+    if (score < 70) return "bg-orange-50";
+    return "bg-red-100";
   };
 
   const getRiskLabel = (level: string) => {
@@ -134,13 +134,9 @@ export default function BurnoutAssessment() {
         {/* Page Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-medium tracking-tight">
+            <h1 className="text-2xl font-medium tracking-tight">
               Burnout Risk Assessment
             </h1>
-            <p className="text-muted-foreground">
-              Monitor workload patterns and receive personalized recommendations
-              for sustainable maintenance
-            </p>
           </div>
           <ExportButton pageName="burnout-assessment" />
         </div>
@@ -149,11 +145,11 @@ export default function BurnoutAssessment() {
         <div className="grid gap-4 md:grid-cols-3">
           {/* Risk Score Gauge */}
           <div
-            className={`rounded-lg border p-6 ${getRiskBgColor(burnout.riskScore)}`}
+            className={`rounded-2xl p-6 ${getRiskBgColor(burnout.riskScore)}`}
           >
             <h3 className="mb-4 text-sm font-medium">Overall Burnout Risk</h3>
             <div className="flex flex-col items-center">
-              <div className="relative h-32 w-32">
+              <div className="relative h-48 w-48">
                 <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
                   <circle
                     cx="50"
@@ -180,14 +176,14 @@ export default function BurnoutAssessment() {
                     className={`h-6 w-6 ${getRiskColor(burnout.riskScore)}`}
                   />
                   <span
-                    className={`mt-1 text-2xl font-semibold ${getRiskColor(burnout.riskScore)}`}
+                    className={`mt-2 text-2xl ${getRiskColor(burnout.riskScore)}`}
                   >
                     {burnout.riskScore}%
                   </span>
                 </div>
               </div>
               <div className="mt-4 text-center">
-                <p className={`font-medium ${getRiskColor(burnout.riskScore)}`}>
+                <p className={`${getRiskColor(burnout.riskScore)} text-2xl`}>
                   {getRiskLabel(burnout.riskLevel)}
                 </p>
                 <p className="text-sm text-muted-foreground">Monitor closely</p>
@@ -196,7 +192,7 @@ export default function BurnoutAssessment() {
           </div>
 
           {/* Risk Indicators */}
-          <div className="space-y-3">
+          <div className="space-y-8 mt-4">
             <h3 className="text-sm font-medium text-muted-foreground">
               Risk Indicators
             </h3>

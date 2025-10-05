@@ -7,16 +7,16 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Triager",
+  title: "Foozi - Open Source Maintainer Dashboard",
   verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION! },
   description:
-    "Triager - Maintainer Dashboard that surfaces maintainer efforts including reviews, discussions, issue triage, PR comments, mentorship, docs, and CI fixes",
+    "Foozi - Track your invisible labor as an open source maintainer. Monitor code reviews, issue triage, mentorship, community engagement, and prevent burnout.",
   keywords:
-    "Triager, maintainer dashboard, GitHub analytics, open source, code reviews, issue triage, PR management, developer productivity",
+    "Foozi, open source, maintainer dashboard, GitHub analytics, code reviews, issue triage, PR management, developer productivity, burnout prevention, community health",
   openGraph: {
-    title: "Triager - Maintainer Dashboard",
+    title: "Foozi - Open Source Maintainer Dashboard",
     description:
-      "Surface and track maintainer efforts including reviews, discussions, issue triage, PR comments, mentorship, docs, and CI fixes",
+      "Track invisible labor, monitor community health, and prevent burnout. The dashboard for open source maintainers.",
     type: "website",
   },
 };

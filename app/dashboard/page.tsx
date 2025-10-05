@@ -103,12 +103,9 @@ export default function DashboardOverview() {
         {/* Page Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-medium tracking-tight">
+            <h1 className="text-2xl font-medium tracking-tight">
               Dashboard Overview
             </h1>
-            <p className="text-muted-foreground">
-              Track your complete maintainer impact beyond just code commits
-            </p>
           </div>
           <ExportButton pageName="dashboard-overview" />
         </div>
@@ -155,7 +152,7 @@ export default function DashboardOverview() {
 
         {/* Secondary Metrics */}
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="rounded-lg border border-gray-200 bg-white p-2 px-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Response Time</p>
