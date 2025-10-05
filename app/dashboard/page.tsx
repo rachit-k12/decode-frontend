@@ -9,7 +9,8 @@ import {
   DistributionPieChart,
   SentimentLineChart,
 } from "@/components/dashboard/ActivityChart";
-import { mockMaintainerMetrics } from "@/lib/mock-data";
+import { useDashboardData } from "@/hooks/queries/useMaintainerData";
+import { useUsername } from "@/contexts/UsernameContext";
 import {
   Eye,
   TrendingUp,
@@ -19,10 +20,82 @@ import {
   GitPullRequest,
   MessageSquare,
   BookOpen,
+  Info,
 } from "lucide-react";
 
 export default function DashboardOverview() {
-  const metrics = mockMaintainerMetrics;
+  // Use the real API data with username from context
+  const { username } = useUsername();
+  const { data, isLoading, error } = useDashboardData(username);
+
+  // Show message if no username is entered
+  if (!username) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <Info className="h-16 w-16 text-gray-400" />
+          <div className="text-center">
+            <h2 className="text-2xl font-medium text-gray-900 mb-2">
+              Welcome to Maintainer Dashboard
+            </h2>
+            <p className="text-gray-600">
+              Please enter a GitHub username in the sidebar to view maintainer
+              data
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-pulse text-muted-foreground">
+            Loading dashboard data for {username}...
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <div className="text-red-500 text-center">
+            <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">
+              Error loading dashboard data
+            </h3>
+            <p className="text-sm">
+              Unable to load data for user "{username}". Please check the
+              username and try again.
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Use the fetched data, fallback to empty object if no data
+  const metrics = data?.metrics || {
+    invisibleLaborScore: 0,
+    reviewImpactScore: 0,
+    communityEngagement: 0,
+    burnoutRisk: 0,
+    responseTime: 0,
+    totalContributions: 0,
+    mentorshipHours: 0,
+    weeklyActivity: [],
+    activityDistribution: [],
+    sentimentTrend: [],
+  };
+
+  const alerts = data?.alerts || [];
 
   return (
     <DashboardLayout>
@@ -74,7 +147,7 @@ export default function DashboardOverview() {
             value={`${metrics.burnoutRisk}%`}
             trend={3}
             trendDirection="down"
-            subtitle="Risk level: Medium"
+            subtitle={`Risk level: ${data?.burnout?.riskLevel || "Unknown"}`}
             icon={<AlertTriangle className="h-5 w-5" />}
             color="orange"
           />
@@ -157,74 +230,90 @@ export default function DashboardOverview() {
             Quick Alerts & Notifications
           </h3>
           <div className="space-y-3">
-            <div className="flex items-start gap-3 rounded-lg bg-orange-50 p-4 border border-orange-200">
-              <AlertTriangle className="mt-0.5 h-5 w-5 text-orange-600" />
-              <div className="flex-1">
-                <p className="text-sm text-orange-900">
-                  Weekend activity increasing
-                </p>
-                <p className="mt-1 text-xs text-orange-700">
-                  You've been active 3 weekends in a row. Consider taking a
-                  break to prevent burnout.
-                </p>
-              </div>
-            </div>
+            {alerts.length > 0 ? (
+              // Show real alerts from API
+              alerts.map((alert: any, index: number) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 rounded-lg bg-orange-50 p-4 border border-orange-200"
+                >
+                  <AlertTriangle className="mt-0.5 h-5 w-5 text-orange-600" />
+                  <div className="flex-1">
+                    <p className="text-sm text-orange-900">
+                      {alert.title || "Alert"}
+                    </p>
+                    <p className="mt-1 text-xs text-orange-700">
+                      {alert.message ||
+                        alert.description ||
+                        "Please review your activity"}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              // Show default alerts when no alerts from API
+              <>
+                {data?.burnout?.riskLevel === "high" && (
+                  <div className="flex items-start gap-3 rounded-lg bg-orange-50 p-4 border border-orange-200">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 text-orange-600" />
+                    <div className="flex-1">
+                      <p className="text-sm text-orange-900">
+                        High burnout risk detected
+                      </p>
+                      <p className="mt-1 text-xs text-orange-700">
+                        Your burnout risk is at {data?.burnout?.riskScore}%.
+                        Consider following the recommendations in the Burnout
+                        tab.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-            <div className="flex items-start gap-3 rounded-lg bg-blue-50 p-4 border border-blue-200">
-              <TrendingUp className="mt-0.5 h-5 w-5 text-blue-600" />
-              <div className="flex-1">
-                <p className="text-sm text-blue-900">
-                  Review velocity improved
-                </p>
-                <p className="mt-1 text-xs text-blue-700">
-                  Your average review time decreased by 2.5 hours this week.
-                  Great progress!
-                </p>
-              </div>
-            </div>
+                <div className="flex items-start gap-3 rounded-lg bg-blue-50 p-4 border border-blue-200">
+                  <TrendingUp className="mt-0.5 h-5 w-5 text-blue-600" />
+                  <div className="flex-1">
+                    <p className="text-sm text-blue-900">
+                      Review impact score: {metrics.reviewImpactScore}%
+                    </p>
+                    <p className="mt-1 text-xs text-blue-700">
+                      Your code reviews are making a strong impact on the
+                      project quality.
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex items-start gap-3 rounded-lg bg-emerald-50 p-4 border border-emerald-200">
-              <Users className="mt-0.5 h-5 w-5 text-emerald-600" />
-              <div className="flex-1">
-                <p className="text-sm text-emerald-900">
-                  New contributor milestone
-                </p>
-                <p className="mt-1 text-xs text-emerald-700">
-                  You've helped 150+ new contributors! Consider sharing your
-                  mentorship experience.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+                {metrics.communityEngagement >= 90 && (
+                  <div className="flex items-start gap-3 rounded-lg bg-emerald-50 p-4 border border-emerald-200">
+                    <Users className="mt-0.5 h-5 w-5 text-emerald-600" />
+                    <div className="flex-1">
+                      <p className="text-sm text-emerald-900">
+                        Excellent community engagement!
+                      </p>
+                      <p className="mt-1 text-xs text-emerald-700">
+                        Your {metrics.communityEngagement}% engagement score
+                        shows strong community leadership.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-        {/* Repository Status Summary */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-base font-medium">Repository Summary</h3>
-            <span className="text-sm text-muted-foreground">
-              {metrics.totalRepositories} active repositories
-            </span>
-          </div>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="text-center">
-              <p className="text-2xl font-semibold text-emerald-500">4</p>
-              <p className="text-xs text-muted-foreground">Healthy</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-semibold text-amber-500">3</p>
-              <p className="text-xs text-muted-foreground">Needs Attention</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-semibold text-red-500">1</p>
-              <p className="text-xs text-muted-foreground">Critical</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-semibold text-blue-500">234</p>
-              <p className="text-xs text-muted-foreground">
-                Total Contributors
-              </p>
-            </div>
+                {alerts.length === 0 &&
+                  data?.burnout?.riskLevel !== "high" &&
+                  metrics.communityEngagement < 90 && (
+                    <div className="flex items-start gap-3 rounded-lg bg-gray-50 p-4 border border-gray-200">
+                      <Info className="mt-0.5 h-5 w-5 text-gray-600" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900">
+                          No alerts at this time
+                        </p>
+                        <p className="mt-1 text-xs text-gray-700">
+                          Keep up the great work maintaining your projects!
+                        </p>
+                      </div>
+                    </div>
+                  )}
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "get-version": "echo $npm_package_version"
+    "get-version": "echo $npm_package_version",
+    "pdf:single": "ts-node scripts/generate-pdf.ts",
+    "pdf:tabs": "ts-node scripts/generate-pdf.ts --tabs",
+    "pdf:full": "ts-node scripts/generate-pdf.ts --full-site",
+    "pdf:help": "ts-node scripts/generate-pdf.ts --help"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -79,16 +83,19 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@types/commander": "^2.12.0",
     "@types/node": "^20",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/react-syntax-highlighter": "^15.5.13",
     "autoprefixer": "^10.4.20",
+    "commander": "^14.0.1",
     "eslint": "^8",
     "eslint-config-next": "^15.4.3",
     "eslint-config-prettier": "^10.1.5",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

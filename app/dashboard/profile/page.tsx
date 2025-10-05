@@ -4,7 +4,8 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartContainer } from "@/components/dashboard/ChartContainer";
 import { ExportButton } from "@/components/dashboard/ExportButton";
-import { mockContributionProfile } from "@/lib/mock-data";
+import { useDashboardData } from "@/hooks/queries/useMaintainerData";
+import { useUsername } from "@/contexts/UsernameContext";
 import {
   Award,
   Download,
@@ -22,6 +23,7 @@ import {
   Target,
   Clock,
   CheckCircle,
+  Info,
 } from "lucide-react";
 
 const iconMap: Record<string, any> = {
@@ -46,10 +48,79 @@ const levelColors: Record<string, string> = {
 };
 
 export default function ContributionProfile() {
-  const profile = mockContributionProfile;
+  // Use the real API data with username from context
+  const { username } = useUsername();
+  const { data, isLoading, error } = useDashboardData(username);
   const [exportFormat, setExportFormat] = useState<"pdf" | "linkedin" | "url">(
     "pdf"
   );
+
+  // Show message if no username is entered
+  if (!username) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <Info className="h-16 w-16 text-gray-400" />
+          <div className="text-center">
+            <h2 className="text-2xl font-medium text-gray-900 mb-2">
+              No Username Selected
+            </h2>
+            <p className="text-gray-600">
+              Please enter a GitHub username in the sidebar to view profile data
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-pulse text-muted-foreground">
+            Loading profile data for {username}...
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <div className="text-red-500 text-center">
+            <p className="text-sm">
+              Error loading profile data for "{username}". Please try again.
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const profile = data?.profile || {
+    name: "",
+    username: "",
+    avatar: "",
+    bio: "",
+    joinedDate: "",
+    achievements: [],
+    skills: [],
+    testimonials: [],
+    impactSummary: {
+      totalReviews: 0,
+      issuesTriaged: 0,
+      contributorsHelped: 0,
+      documentationPages: 0,
+      communityImpact: 0,
+      timeInvested: 0,
+    },
+    topRepositories: [],
+  };
 
   const handleExport = async () => {
     if (exportFormat === "pdf") {

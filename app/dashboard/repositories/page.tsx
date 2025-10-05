@@ -5,7 +5,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartContainer } from "@/components/dashboard/ChartContainer";
 import { ExportButton } from "@/components/dashboard/ExportButton";
 import { MultiLineChart } from "@/components/dashboard/ActivityChart";
-import { mockRepositories } from "@/lib/mock-data";
+import { useDashboardData } from "@/hooks/queries/useMaintainerData";
+import { useUsername } from "@/contexts/UsernameContext";
 import {
   FolderOpen,
   Star,
@@ -19,52 +20,85 @@ import {
   XCircle,
   Activity,
   Filter,
+  Info,
 } from "lucide-react";
 
-// Generate contributor growth data
-const generateContributorGrowth = () => {
-  const dates = Array.from({ length: 30 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (29 - i));
-    return date.toISOString().split("T")[0];
-  });
-
-  let total = 150;
-  let newContribs = 5;
-  let returning = 120;
-
-  return dates.map((date) => {
-    total = Math.max(100, total + Math.floor(Math.random() * 10 - 3));
-    newContribs = Math.max(0, newContribs + Math.floor(Math.random() * 5 - 2));
-    returning = Math.max(80, returning + Math.floor(Math.random() * 8 - 3));
-
-    return {
-      date,
-      total,
-      new: newContribs,
-      returning,
-    };
-  });
-};
-
-const contributorGrowthData = generateContributorGrowth();
-
-// Issue resolution funnel data
-const issueResolutionData = [
-  { stage: "Created", count: 234, percentage: 100 },
-  { stage: "Triaged", count: 198, percentage: 85 },
-  { stage: "Assigned", count: 156, percentage: 67 },
-  { stage: "In Progress", count: 112, percentage: 48 },
-  { stage: "Resolved", count: 98, percentage: 42 },
-];
-
 export default function RepositoryHealth() {
+  // Use the real API data with username from context
+  const { username } = useUsername();
+  const { data, isLoading, error } = useDashboardData(username);
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"health" | "activity" | "contributors">(
     "health"
   );
 
-  const sortedRepos = [...mockRepositories].sort((a, b) => {
+  // Show message if no username is entered
+  if (!username) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <Info className="h-16 w-16 text-gray-400" />
+          <div className="text-center">
+            <h2 className="text-2xl font-medium text-gray-900 mb-2">
+              No Username Selected
+            </h2>
+            <p className="text-gray-600">
+              Please enter a GitHub username in the sidebar to view repository
+              data
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-pulse text-muted-foreground">
+            Loading repository data for {username}...
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <div className="text-red-500 text-center">
+            <p className="text-sm">
+              Error loading repository data for "{username}". Please try again.
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const repositoryHealth = data?.repositoryHealth || [];
+  const analytics = data?.analytics;
+
+  // Use API data if available, otherwise show empty
+  const contributorGrowthData = analytics?.contributorGrowth
+    ? [
+        ...analytics.contributorGrowth.total.map((item, idx) => ({
+          date: item.date,
+          total: item.value,
+          new: analytics.contributorGrowth!.new[idx]?.value || 0,
+          returning: analytics.contributorGrowth!.returning[idx]?.value || 0,
+        })),
+      ]
+    : [];
+
+  // Use API data if available, otherwise show empty
+  const issueResolutionData = analytics?.issueResolutionFunnel || [];
+
+  const sortedRepos = [...repositoryHealth].sort((a, b) => {
     switch (sortBy) {
       case "health":
         return b.healthScore - a.healthScore;
@@ -371,22 +405,37 @@ export default function RepositoryHealth() {
             title="Contributor Growth Trends"
             subtitle="New vs returning contributors over time"
           >
-            <MultiLineChart
-              data={contributorGrowthData}
-              lines={[
-                {
-                  dataKey: "total",
-                  color: "#2563EB",
-                  name: "Total Contributors",
-                },
-                { dataKey: "new", color: "#059669", name: "New Contributors" },
-                {
-                  dataKey: "returning",
-                  color: "#7C3AED",
-                  name: "Returning Contributors",
-                },
-              ]}
-            />
+            {contributorGrowthData.length > 0 ? (
+              <MultiLineChart
+                data={contributorGrowthData}
+                lines={[
+                  {
+                    dataKey: "total",
+                    color: "#2563EB",
+                    name: "Total Contributors",
+                  },
+                  {
+                    dataKey: "new",
+                    color: "#059669",
+                    name: "New Contributors",
+                  },
+                  {
+                    dataKey: "returning",
+                    color: "#7C3AED",
+                    name: "Returning Contributors",
+                  },
+                ]}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                <div className="text-center">
+                  <p>Contributor growth data not available</p>
+                  <p className="text-sm mt-2">
+                    Analytics will appear when backend provides this data
+                  </p>
+                </div>
+              </div>
+            )}
           </ChartContainer>
 
           {/* Issue Resolution Funnel */}
@@ -394,139 +443,42 @@ export default function RepositoryHealth() {
             title="Issue Resolution Funnel"
             subtitle="Track issue progress from creation to resolution"
           >
-            <div className="p-6">
-              {issueResolutionData.map((stage, index) => (
-                <div key={index} className="relative mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{stage.stage}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {stage.count} ({stage.percentage}%)
-                    </span>
-                  </div>
-                  <div className="h-8 bg-gray-200 rounded">
-                    <div
-                      className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded"
-                      style={{ width: `${stage.percentage}%` }}
-                    />
-                  </div>
-                  {index < issueResolutionData.length - 1 && (
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
-                      <TrendingUp className="h-4 w-4 text-muted-foreground rotate-90" />
+            {issueResolutionData.length > 0 ? (
+              <div className="p-6">
+                {issueResolutionData.map((stage, index) => (
+                  <div key={index} className="relative mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">{stage.stage}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {stage.count} ({stage.percentage}%)
+                      </span>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ChartContainer>
-        </div>
-
-        {/* Release Cycle Analysis */}
-        <ChartContainer
-          title="Release Cycle Analysis"
-          subtitle="Time patterns and frequency of releases"
-        >
-          <div className="p-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="text-center">
-                <div className="mx-auto h-24 w-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                  <span className="text-2xl font-semibold text-white">14</span>
-                </div>
-                <p className="mt-2 font-medium">Days</p>
-                <p className="text-sm text-muted-foreground">
-                  Average Release Cycle
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="mx-auto h-24 w-24 rounded-full bg-gradient-to-br from-green-600 to-teal-600 flex items-center justify-center">
-                  <span className="text-2xl font-semibold text-white">92%</span>
-                </div>
-                <p className="mt-2 font-medium">On-Time</p>
-                <p className="text-sm text-muted-foreground">
-                  Release Success Rate
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="mx-auto h-24 w-24 rounded-full bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center">
-                  <span className="text-2xl font-semibold text-white">3.2</span>
-                </div>
-                <p className="mt-2 font-medium">Hotfixes</p>
-                <p className="text-sm text-muted-foreground">
-                  Per Release (Average)
-                </p>
-              </div>
-            </div>
-
-            {/* Release Timeline */}
-            <div className="mt-8">
-              <h4 className="mb-4 text-sm font-medium">Recent Releases</h4>
-              <div className="relative">
-                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300 dark:bg-gray-700" />
-                {[
-                  {
-                    version: "v2.3.0",
-                    date: "2024-03-20",
-                    type: "major",
-                    status: "stable",
-                  },
-                  {
-                    version: "v2.2.5",
-                    date: "2024-03-06",
-                    type: "patch",
-                    status: "stable",
-                  },
-                  {
-                    version: "v2.2.4",
-                    date: "2024-02-21",
-                    type: "patch",
-                    status: "deprecated",
-                  },
-                  {
-                    version: "v2.2.0",
-                    date: "2024-02-07",
-                    type: "minor",
-                    status: "deprecated",
-                  },
-                ].map((release, index) => (
-                  <div
-                    key={index}
-                    className="relative flex items-center gap-4 pb-6"
-                  >
-                    <div
-                      className={`h-4 w-4 rounded-full border-2 border-white dark:border-gray-950 ${
-                        release.type === "major"
-                          ? "bg-blue-600"
-                          : release.type === "minor"
-                            ? "bg-green-600"
-                            : "bg-gray-600"
-                      }`}
-                    />
-                    <div className="flex-1 rounded-lg border p-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-medium">{release.version}</span>
-                          <span
-                            className={`ml-2 inline-block px-2 py-0.5 rounded text-xs ${
-                              release.status === "stable"
-                                ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400"
-                                : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
-                            }`}
-                          >
-                            {release.status}
-                          </span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {release.date}
-                        </span>
+                    <div className="h-8 bg-gray-200 rounded">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded"
+                        style={{ width: `${stage.percentage}%` }}
+                      />
+                    </div>
+                    {index < issueResolutionData.length - 1 && (
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
+                        <TrendingUp className="h-4 w-4 text-muted-foreground rotate-90" />
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        </ChartContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                <div className="text-center">
+                  <p>Issue resolution funnel data not available</p>
+                  <p className="text-sm mt-2">
+                    Analytics will appear when backend provides this data
+                  </p>
+                </div>
+              </div>
+            )}
+          </ChartContainer>
+        </div>
       </div>
     </DashboardLayout>
   );

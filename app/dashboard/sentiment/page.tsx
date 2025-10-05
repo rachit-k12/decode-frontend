@@ -8,7 +8,8 @@ import {
   MultiLineChart,
   DistributionPieChart,
 } from "@/components/dashboard/ActivityChart";
-import { mockSentimentAnalysis } from "@/lib/mock-data";
+import { useDashboardData } from "@/hooks/queries/useMaintainerData";
+import { useUsername } from "@/contexts/UsernameContext";
 import {
   Heart,
   TrendingUp,
@@ -16,41 +17,101 @@ import {
   Award,
   AlertCircle,
   Smile,
+  Info,
 } from "lucide-react";
 
-// Generate multi-line sentiment data
-const generateMultiLineSentiment = () => {
-  const dates = Array.from({ length: 90 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (89 - i));
-    return date.toISOString().split("T")[0];
-  });
-
-  let overall = 65;
-  let reviews = 70;
-  let discussions = 60;
-
-  return dates.map((date) => {
-    overall = Math.max(40, Math.min(90, overall + (Math.random() - 0.45) * 3));
-    reviews = Math.max(40, Math.min(90, reviews + (Math.random() - 0.45) * 4));
-    discussions = Math.max(
-      40,
-      Math.min(90, discussions + (Math.random() - 0.45) * 5)
-    );
-
-    return {
-      date,
-      overall: Math.round(overall),
-      reviews: Math.round(reviews),
-      discussions: Math.round(discussions),
-    };
-  });
-};
-
-const multiLineSentimentData = generateMultiLineSentiment();
+// TODO: TEMPORARY FALLBACK - Backend needs to add sentiment.multiLineTrend field
+// Once backend implements this per OPENAPI_SPEC_COMPLETE.md, remove this function
+// and use data.sentiment.multiLineTrend from API
 
 export default function SentimentAnalysis() {
-  const sentiment = mockSentimentAnalysis;
+  // Use the real API data with username from context
+  const { username } = useUsername();
+  const { data, isLoading, error } = useDashboardData(username);
+
+  // Show message if no username is entered
+  if (!username) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <Info className="h-16 w-16 text-gray-400" />
+          <div className="text-center">
+            <h2 className="text-2xl font-medium text-gray-900 mb-2">
+              No Username Selected
+            </h2>
+            <p className="text-gray-600">
+              Please enter a GitHub username in the sidebar to view sentiment
+              data
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-pulse text-muted-foreground">
+            Loading sentiment data for {username}...
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <div className="text-red-500 text-center">
+            <p className="text-sm">
+              Error loading sentiment data for "{username}". Please try again.
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const sentiment = data?.sentiment || {
+    score: 0,
+    trend: "stable",
+    wordFrequency: [],
+    feedbackDistribution: {
+      constructive: 0,
+      appreciative: 0,
+      critical: 0,
+      neutral: 0,
+    },
+    topPositiveFeedback: [],
+    concernAreas: [],
+  };
+
+  const communityMetrics = data?.communityMetrics || {
+    thankYouMessages: 0,
+    helpedContributors: 0,
+    mentorshipSessions: 0,
+    conflictsResolved: 0,
+    documentationImproved: 0,
+    communityGrowth: 0,
+  };
+
+  // TODO: Once backend adds sentiment.multiLineTrend field, use it instead of generated data
+  // Transform API data if available, otherwise use fallback
+  const multiLineSentimentData = sentiment.multiLineTrend
+    ? [
+        ...sentiment.multiLineTrend.overall.map((item, idx) => ({
+          date: item.date,
+          overall: item.value,
+          reviews: sentiment.multiLineTrend!.reviews[idx]?.value || 0,
+          discussions: sentiment.multiLineTrend!.discussions[idx]?.value || 0,
+        })),
+      ]
+    : [];
 
   // Prepare distribution data for pie chart
   const distributionData = [
@@ -172,12 +233,14 @@ export default function SentimentAnalysis() {
                   <p className="text-sm text-muted-foreground">
                     Thank You Messages
                   </p>
-                  <p className="text-2xl font-semibold">234</p>
+                  <p className="text-2xl font-semibold">
+                    {communityMetrics.thankYouMessages}
+                  </p>
                 </div>
                 <Heart className="h-8 w-8 text-rose-400/60" />
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                +12% from last month
+                From community interactions
               </p>
             </div>
 
@@ -187,7 +250,9 @@ export default function SentimentAnalysis() {
                   <p className="text-sm text-muted-foreground">
                     Appreciation Rate
                   </p>
-                  <p className="text-2xl font-semibold">78%</p>
+                  <p className="text-2xl font-semibold">
+                    {sentiment.feedbackDistribution.appreciative}%
+                  </p>
                 </div>
                 <Award className="h-8 w-8 text-amber-400/60" />
               </div>
@@ -203,14 +268,16 @@ export default function SentimentAnalysis() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Active Discussions
+                    Community Growth
                   </p>
-                  <p className="text-2xl font-semibold">42</p>
+                  <p className="text-2xl font-semibold">
+                    {communityMetrics.communityGrowth}
+                  </p>
                 </div>
                 <MessageSquare className="h-8 w-8 text-blue-400/60" />
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                8 require response
+                New community members
               </p>
             </div>
 
@@ -218,9 +285,9 @@ export default function SentimentAnalysis() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Response Quality
+                    Sentiment Score
                   </p>
-                  <p className="text-2xl font-semibold">92%</p>
+                  <p className="text-2xl font-semibold">{sentiment.score}%</p>
                 </div>
                 <Smile className="h-8 w-8 text-emerald-400/60" />
               </div>
@@ -263,21 +330,17 @@ export default function SentimentAnalysis() {
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Multi-line Trend Chart */}
           <ChartContainer
-            title="90-Day Sentiment Evolution"
-            subtitle="Sentiment trends across different interaction types"
+            title="Sentiment Trend"
+            subtitle="Sentiment evolution over time"
           >
-            <MultiLineChart
-              data={multiLineSentimentData}
-              lines={[
-                { dataKey: "overall", color: "#3B82F6", name: "Overall" },
-                { dataKey: "reviews", color: "#10B981", name: "Code Reviews" },
-                {
-                  dataKey: "discussions",
-                  color: "#F59E0B",
-                  name: "Discussions",
-                },
-              ]}
-            />
+            {data?.metrics?.sentimentTrend &&
+            data.metrics.sentimentTrend.length > 0 ? (
+              <SentimentLineChart data={data.metrics.sentimentTrend} />
+            ) : (
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                No sentiment trend data available
+              </div>
+            )}
           </ChartContainer>
 
           {/* Feedback Distribution */}
@@ -335,48 +398,70 @@ export default function SentimentAnalysis() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">
-                  New Contributor Retention
+                  Community Engagement
                 </span>
-                <span className="text-sm">72%</span>
+                <span className="text-sm">
+                  {data?.metrics?.communityEngagement || 0}%
+                </span>
               </div>
               <div className="h-2 rounded-full bg-gray-200">
-                <div className="h-full w-[72%] rounded-full bg-emerald-500" />
+                <div
+                  className="h-full rounded-full bg-emerald-500"
+                  style={{
+                    width: `${data?.metrics?.communityEngagement || 0}%`,
+                  }}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">
-                  Issue Resolution Satisfaction
+                  Review Impact Score
                 </span>
-                <span className="text-sm">85%</span>
+                <span className="text-sm">
+                  {data?.metrics?.reviewImpactScore || 0}%
+                </span>
               </div>
               <div className="h-2 rounded-full bg-gray-200">
-                <div className="h-full w-[85%] rounded-full bg-blue-500" />
+                <div
+                  className="h-full rounded-full bg-blue-500"
+                  style={{ width: `${data?.metrics?.reviewImpactScore || 0}%` }}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">
-                  Code Review Positivity
+                  Sentiment Score
                 </span>
-                <span className="text-sm">68%</span>
+                <span className="text-sm">{sentiment.score}%</span>
               </div>
               <div className="h-2 rounded-full bg-gray-200">
-                <div className="h-full w-[68%] rounded-full bg-amber-500" />
+                <div
+                  className="h-full rounded-full bg-amber-500"
+                  style={{ width: `${sentiment.score}%` }}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">
-                  Conflict Resolution Rate
+                  Documentation Improved
                 </span>
-                <span className="text-sm">94%</span>
+                <span className="text-sm">
+                  {communityMetrics.documentationImproved} pages
+                </span>
               </div>
               <div className="h-2 rounded-full bg-gray-200">
-                <div className="h-full w-[94%] rounded-full bg-purple-500" />
+                <div
+                  className="h-full rounded-full bg-purple-500"
+                  style={{
+                    width: `${Math.min(100, communityMetrics.documentationImproved * 10)}%`,
+                  }}
+                />
               </div>
             </div>
           </div>

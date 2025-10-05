@@ -1,176 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PuppeteerPDFGenerator } from "@/utils/puppeteer-pdf-generator";
 
 export async function POST(request: NextRequest) {
-  let browser;
+  const generator = new PuppeteerPDFGenerator();
 
   try {
-    const { url, filename = "dashboard" } = await request.json();
+    const {
+      url,
+      filename = "dashboard",
+      sections,
+      tabs,
+    } = await request.json();
 
     console.log("Starting PDF generation for:", url);
 
-    // Dynamically import puppeteer to avoid bundling issues
-    const puppeteer = await import("puppeteer");
+    // Initialize the generator
+    await generator.initialize();
 
-    // Launch browser with optimized settings
-    browser = await puppeteer.default.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--disable-gpu",
-        "--window-size=1920,1080",
-      ],
-    });
+    let pdf: Buffer;
 
-    const page = await browser.newPage();
+    // Handle different export scenarios
+    if (tabs && Array.isArray(tabs)) {
+      // Multiple tabs export - generates multiple PDFs
+      console.log("Generating PDFs for multiple tabs");
+      const results = await generator.generateMultiTabPDF(tabs, url);
 
-    // Set desktop viewport for proper rendering
-    await page.setViewport({
-      width: 1920,
-      height: 1080,
-      deviceScaleFactor: 1,
-    });
-
-    // Emulate media type for print
-    await page.emulateMediaType("screen");
-
-    console.log("Navigating to:", url);
-
-    // Navigate to the page with longer timeout
-    await page.goto(url, {
-      waitUntil: ["networkidle0", "domcontentloaded"],
-      timeout: 60000,
-    });
-
-    console.log("Page loaded, waiting for charts...");
-
-    // Wait for charts to be present
-    try {
-      await page.waitForSelector("svg", { timeout: 15000 });
-      console.log("Charts found");
-    } catch (e) {
-      console.log("No SVG elements found, continuing...");
+      // For now, return the first PDF (you could zip them all together)
+      if (results.length > 0) {
+        pdf = results[0].pdf;
+      } else {
+        throw new Error("No PDFs generated");
+      }
+    } else if (sections && Array.isArray(sections)) {
+      // Combined sections export - single PDF with specific sections
+      console.log("Generating combined PDF with sections:", sections);
+      pdf = await generator.generateCombinedPDF(url, sections, filename);
+    } else {
+      // Single page full export
+      console.log("Generating full page PDF");
+      pdf = await generator.generatePDF({
+        url,
+        filename,
+        fullPage: true,
+        waitForSelectors: [
+          "svg", // Wait for charts
+          ".recharts-wrapper", // Wait for Recharts
+          ".metric-card", // Wait for metric cards
+          ".chart-container", // Wait for chart containers
+        ],
+        customCSS: `
+          /* Custom print styles */
+          @media print {
+            /* Ensure dark mode elements are visible in print */
+            .dark * {
+              color: black !important;
+              background-color: white !important;
+            }
+            
+            /* Ensure charts are properly sized */
+            .recharts-wrapper {
+              width: 100% !important;
+            }
+            
+            /* Hide interactive elements */
+            .hover\\:bg-gray-50, button[role="button"] {
+              display: none !important;
+            }
+          }
+        `,
+      });
     }
-
-    // Wait for ResponsiveContainer to render charts properly
-    await page
-      .waitForFunction(
-        () => {
-          const svgs = document.querySelectorAll("svg");
-          return (
-            svgs.length > 0 &&
-            Array.from(svgs).every((svg) => {
-              const rect = svg.getBoundingClientRect();
-              return rect.width > 100 && rect.height > 100;
-            })
-          );
-        },
-        { timeout: 15000 }
-      )
-      .catch(() => {
-        console.log("Charts may not be fully sized, continuing...");
-      });
-
-    // Scroll through the page to trigger lazy loading
-    console.log("Scrolling through page...");
-    await page.evaluate(async () => {
-      const distance = 100;
-      const delay = 100;
-
-      while (
-        document.scrollingElement!.scrollTop + window.innerHeight <
-        document.scrollingElement!.scrollHeight
-      ) {
-        document.scrollingElement!.scrollBy(0, distance);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-
-      // Scroll back to top
-      document.scrollingElement!.scrollTo(0, 0);
-    });
-
-    // Additional wait for animations and final rendering
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    console.log("Preparing page for PDF export...");
-
-    // Hide/modify elements for cleaner PDF and get main content
-    const contentSelector = await page.evaluate(() => {
-      // Hide sidebar
-      const sidebar =
-        document.querySelector('[class*="sidebar"]') ||
-        document.querySelector("aside") ||
-        document.querySelector('nav[class*="side"]');
-      if (sidebar) {
-        (sidebar as HTMLElement).style.display = "none";
-      }
-
-      // Hide header/top bar (keep page title though)
-      const headers = document.querySelectorAll("header");
-      headers.forEach((header) => {
-        const isMainHeader = header.querySelector("h1");
-        if (!isMainHeader) {
-          (header as HTMLElement).style.display = "none";
-        }
-      });
-
-      // Hide all buttons
-      document.querySelectorAll("button").forEach((btn) => {
-        (btn as HTMLElement).style.display = "none";
-      });
-
-      // Hide navigation elements
-      document.querySelectorAll("nav").forEach((nav) => {
-        (nav as HTMLElement).style.display = "none";
-      });
-
-      // Adjust main content to full width
-      const mainContent = document.querySelector("main");
-      if (mainContent) {
-        (mainContent as HTMLElement).style.marginLeft = "0";
-        (mainContent as HTMLElement).style.paddingLeft = "20px";
-        (mainContent as HTMLElement).style.paddingRight = "20px";
-        (mainContent as HTMLElement).style.width = "100%";
-        (mainContent as HTMLElement).style.maxWidth = "100%";
-      }
-
-      // Return the main content selector
-      return mainContent ? "main" : "body";
-    });
-
-    console.log("Generating PDF...");
-
-    // Get the height of the main content for proper PDF pagination
-    const contentHeight = await page.evaluate(() => {
-      const main = document.querySelector("main");
-      return main ? main.scrollHeight : document.body.scrollHeight;
-    });
-
-    console.log(`Content height: ${contentHeight}px`);
-
-    // Generate PDF with optimized settings
-    const pdf = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: {
-        top: "15mm",
-        right: "15mm",
-        bottom: "15mm",
-        left: "15mm",
-      },
-      preferCSSPageSize: false,
-      displayHeaderFooter: false,
-    });
-
-    await browser.close();
-    browser = null;
 
     console.log("PDF generated successfully, size:", pdf.length, "bytes");
 
     // Return PDF as response
-    return new NextResponse(pdf, {
+    return new NextResponse(pdf as any, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
@@ -181,15 +85,6 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("PDF generation error:", error);
 
-    // Ensure browser is closed
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error("Error closing browser:", closeError);
-      }
-    }
-
     return NextResponse.json(
       {
         error: "Failed to generate PDF",
@@ -199,5 +94,56 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    // Always cleanup resources
+    await generator.cleanup();
+  }
+}
+
+// GET endpoint for testing
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const testUrl = searchParams.get("url");
+
+  if (!testUrl) {
+    return NextResponse.json(
+      {
+        error: "URL parameter is required",
+        example: "/api/export-pdf?url=http://localhost:3000/dashboard",
+      },
+      { status: 400 }
+    );
+  }
+
+  const generator = new PuppeteerPDFGenerator();
+
+  try {
+    await generator.initialize();
+
+    const pdf = await generator.generatePDF({
+      url: testUrl,
+      filename: "test-export",
+      fullPage: true,
+    });
+
+    return new NextResponse(pdf as any, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'inline; filename="test-export.pdf"',
+      },
+    });
+  } catch (error: any) {
+    console.error("Test PDF generation error:", error);
+
+    return NextResponse.json(
+      {
+        error: "Failed to generate test PDF",
+        details: error?.message || "Unknown error",
+      },
+      { status: 500 }
+    );
+  } finally {
+    await generator.cleanup();
   }
 }

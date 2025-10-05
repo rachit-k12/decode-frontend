@@ -4,7 +4,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartContainer } from "@/components/dashboard/ChartContainer";
 import { ExportButton } from "@/components/dashboard/ExportButton";
 import { MultiLineChart } from "@/components/dashboard/ActivityChart";
-import { mockBurnoutIndicator } from "@/lib/mock-data";
+import { useDashboardData } from "@/hooks/queries/useMaintainerData";
+import { useUsername } from "@/contexts/UsernameContext";
 import {
   AlertTriangle,
   TrendingUp,
@@ -16,47 +17,92 @@ import {
   Target,
   CheckCircle2,
   XCircle,
+  Info,
 } from "lucide-react";
 
-// Generate burnout trend data
-const generateBurnoutTrends = () => {
-  const dates = Array.from({ length: 30 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (29 - i));
-    return date.toISOString().split("T")[0];
-  });
-
-  let responseTime = 4.2;
-  let activityLevel = 65;
-  let sentiment = 73;
-
-  return dates.map((date) => {
-    responseTime = Math.max(
-      2,
-      Math.min(12, responseTime + (Math.random() - 0.48) * 0.5)
-    );
-    activityLevel = Math.max(
-      40,
-      Math.min(100, activityLevel + (Math.random() - 0.45) * 8)
-    );
-    sentiment = Math.max(
-      40,
-      Math.min(90, sentiment + (Math.random() - 0.47) * 5)
-    );
-
-    return {
-      date,
-      responseTime: Math.round(responseTime * 10) / 10,
-      activityLevel: Math.round(activityLevel),
-      sentiment: Math.round(sentiment),
-    };
-  });
-};
-
-const burnoutTrends = generateBurnoutTrends();
-
 export default function BurnoutAssessment() {
-  const burnout = mockBurnoutIndicator;
+  // Use the real API data with username from context
+  const { username } = useUsername();
+  const { data, isLoading, error } = useDashboardData(username);
+
+  // Show message if no username is entered
+  if (!username) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <Info className="h-16 w-16 text-gray-400" />
+          <div className="text-center">
+            <h2 className="text-2xl font-medium text-gray-900 mb-2">
+              No Username Selected
+            </h2>
+            <p className="text-gray-600">
+              Please enter a GitHub username in the sidebar to view burnout data
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-pulse text-muted-foreground">
+            Loading burnout data for {username}...
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 space-y-4">
+          <div className="text-red-500 text-center">
+            <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
+            <p className="text-sm">
+              Error loading burnout data for "{username}". Please try again.
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Use real burnout data from API
+  const burnout = data?.burnout || {
+    riskScore: 0,
+    riskLevel: "low",
+    indicators: {
+      workload: 0,
+      responseTime: 0,
+      sentimentDrop: 0,
+      activitySpikes: 0,
+      weekendWork: 0,
+    },
+    recommendations: [],
+    recoveryMetrics: {
+      daysOff: 0,
+      delegatedTasks: 0,
+      reducedScope: 0,
+    },
+  };
+
+  // Use API data if available, otherwise show empty
+  const burnoutTrends = burnout.trends
+    ? [
+        ...burnout.trends.responseTime.map((item, idx) => ({
+          date: item.date,
+          responseTime: item.value,
+          activityLevel: burnout.trends!.activityLevel[idx]?.value || 0,
+          sentiment: burnout.trends!.sentiment[idx]?.value || 0,
+        })),
+      ]
+    : [];
 
   const getRiskColor = (score: number) => {
     if (score < 30) return "text-green-600";
@@ -314,82 +360,57 @@ export default function BurnoutAssessment() {
           title="30-Day Burnout Indicators"
           subtitle="Track changes in response time, activity levels, and sentiment"
         >
-          <MultiLineChart
-            data={burnoutTrends}
-            lines={[
-              {
-                dataKey: "responseTime",
-                color: "#DC2626",
-                name: "Response Time (hrs)",
-              },
-              {
-                dataKey: "activityLevel",
-                color: "#D97706",
-                name: "Activity Level (%)",
-              },
-              {
-                dataKey: "sentiment",
-                color: "#059669",
-                name: "Sentiment Score",
-              },
-            ]}
-          />
+          {burnoutTrends.length > 0 ? (
+            <MultiLineChart
+              data={burnoutTrends}
+              lines={[
+                {
+                  dataKey: "responseTime",
+                  color: "#DC2626",
+                  name: "Response Time (hrs)",
+                },
+                {
+                  dataKey: "activityLevel",
+                  color: "#D97706",
+                  name: "Activity Level (%)",
+                },
+                {
+                  dataKey: "sentiment",
+                  color: "#059669",
+                  name: "Sentiment Score",
+                },
+              ]}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+              <div className="text-center">
+                <p>Trend data not available yet</p>
+                <p className="text-sm mt-2">
+                  Historical data will appear once backend implements this
+                  feature
+                </p>
+              </div>
+            </div>
+          )}
         </ChartContainer>
 
-        {/* Comparison with Healthy Benchmarks */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ChartContainer
-            title="Your Patterns vs Healthy Benchmarks"
-            subtitle="Compare your metrics with recommended sustainable levels"
-          >
-            <div className="space-y-4 p-4">
-              {[
-                { metric: "Weekly Hours", yours: 52, healthy: 40, max: 60 },
-                { metric: "Weekend Activity", yours: 8, healthy: 2, max: 10 },
-                { metric: "Late Night Work", yours: 12, healthy: 5, max: 15 },
-                { metric: "Break Frequency", yours: 2, healthy: 5, max: 8 },
-                { metric: "Response Delay", yours: 4.2, healthy: 6, max: 12 },
-              ].map((item) => (
-                <div key={item.metric} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{item.metric}</span>
-                    <span className="text-muted-foreground">
-                      {item.yours} / {item.healthy} (recommended)
-                    </span>
-                  </div>
-                  <div className="relative h-6 rounded-full bg-gray-200">
-                    <div
-                      className="absolute inset-y-0 left-0 rounded-full bg-blue-600"
-                      style={{ width: `${(item.yours / item.max) * 100}%` }}
-                    />
-                    <div
-                      className="absolute inset-y-0 left-0 h-full w-0.5 bg-green-600"
-                      style={{ left: `${(item.healthy / item.max) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ChartContainer>
-
-          {/* Recommendations */}
-          <ChartContainer
-            title="Personalized Recommendations"
-            subtitle="Actionable steps to reduce burnout risk"
-          >
-            <div className="space-y-3 p-4">
-              {burnout.recommendations.map((recommendation, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-3 rounded-lg border p-3 bg-emerald-50"
-                >
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-600" />
-                  <p className="text-xs text-emerald-900">{recommendation}</p>
-                </div>
-              ))}
-            </div>
-          </ChartContainer>
-        </div>
+        {/* Recommendations */}
+        <ChartContainer
+          title="Personalized Recommendations"
+          subtitle="Actionable steps to reduce burnout risk"
+        >
+          <div className="space-y-3 p-4">
+            {burnout.recommendations.map((recommendation, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-3 rounded-lg border p-3 bg-emerald-50"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-600" />
+                <p className="text-xs text-emerald-900">{recommendation}</p>
+              </div>
+            ))}
+          </div>
+        </ChartContainer>
 
         {/* Warning Signs */}
         <ChartContainer
