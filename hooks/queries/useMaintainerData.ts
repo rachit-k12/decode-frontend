@@ -127,9 +127,11 @@ export interface DashboardData {
   // TODO: Backend needs to add this entire object per OPENAPI_SPEC_COMPLETE.md
   analytics?: {
     activityHeatmap: Array<{
+      date: string;
       day: string;
-      hour: number;
-      intensity: number;
+      week: number;
+      count: number;
+      level: number;
     }>;
     contributorGrowth: {
       total: Array<{ date: string; value: number }>;

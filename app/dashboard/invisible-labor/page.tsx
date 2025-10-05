@@ -43,6 +43,7 @@ export default function InvisibleLaborAnalytics() {
   };
 
   const profile = data?.profile;
+  const analytics = data?.analytics;
 
   // Transform profile.skills to radar chart format if available
   const radarData = profile?.skillsRadar
@@ -55,35 +56,30 @@ export default function InvisibleLaborAnalytics() {
         }))
       : [];
 
-  // Transform weeklyActivity data into heatmap format
+  // Transform activityHeatmap data into heatmap format
   // This hook must be called before any conditional returns
   const heatMapData = useMemo(() => {
-    if (!metrics.weeklyActivity || metrics.weeklyActivity.length === 0) {
+    if (!analytics?.activityHeatmap || analytics.activityHeatmap.length === 0) {
       return [];
     }
 
-    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-    return metrics.weeklyActivity.map((activity) => {
+    return analytics.activityHeatmap.map((activity) => {
       const date = new Date(activity.date);
-      const intensity = Math.min(100, (activity.total / 40) * 100); // Normalize to 0-100
-      const opacity = Math.max(0.2, intensity / 100);
+      // Map level (1-4) to opacity (0.2-1.0)
+      const opacity = Math.max(0.2, Math.min(1.0, activity.level * 0.25));
 
       return {
         date: activity.date,
-        dayOfWeek: daysOfWeek[date.getDay()],
+        dayOfWeek: activity.day,
         dayOfMonth: date.getDate(),
-        intensity: Math.round(intensity),
+        week: activity.week,
+        intensity: activity.level * 25, // Convert level to percentage
         opacity,
-        total: activity.total,
-        reviews: activity.reviews,
-        triage: activity.triage,
-        mentorship: activity.mentorship,
-        documentation: activity.documentation,
-        discussions: activity.discussions,
+        total: activity.count,
+        level: activity.level,
       };
     });
-  }, [metrics.weeklyActivity]);
+  }, [analytics?.activityHeatmap]);
 
   // Show message if no username is entered
   if (!username) {
@@ -222,7 +218,7 @@ export default function InvisibleLaborAnalytics() {
 
         {/* Activity Heat Map */}
         <ChartContainer
-          title="Weekly Activity Heat Map"
+          title="Daily Activity Heat Map"
           subtitle="Activity intensity from available data"
         >
           <div className="p-4">
@@ -250,18 +246,18 @@ export default function InvisibleLaborAnalytics() {
                   {heatMapData.map((dayData) => (
                     <div key={dayData.date} className="relative group">
                       <div
-                        className="w-full h-16 rounded cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all flex flex-col items-center justify-center gap-0.5"
+                        className="w-full h-16 rounded cursor-pointer hover:ring-2 hover:ring-blue-600 transition-all flex flex-col items-center justify-center gap-0.5"
                         style={{
                           backgroundColor: `rgba(59, 130, 246, ${dayData.opacity})`,
                         }}
                       >
-                        <div className="text-[10px] font-medium text-white drop-shadow-md">
+                        <div className="text-[10px] font-medium text-black drop-shadow-md">
                           {dayData.dayOfMonth}
                         </div>
-                        <div className="text-[7px] text-white/70 drop-shadow">
+                        <div className="text-[7px] text-black/70 drop-shadow">
                           {dayData.dayOfWeek}
                         </div>
-                        <div className="text-[10px] font-semibold text-white drop-shadow-md">
+                        <div className="text-[10px] font-semibold text-black drop-shadow-md">
                           {dayData.total}
                         </div>
                       </div>
@@ -271,7 +267,7 @@ export default function InvisibleLaborAnalytics() {
                         <div>{dayData.date}</div>
                         <div>Total: {dayData.total} activities</div>
                         <div className="text-[10px] mt-1">
-                          Reviews: {dayData.reviews}, Triage: {dayData.triage}
+                          Activity Level: {dayData.level}/4
                         </div>
                       </div>
                     </div>
@@ -291,7 +287,7 @@ export default function InvisibleLaborAnalytics() {
           title="Cumulative Labor Over Time"
           subtitle="30-day trend of different contribution types"
         >
-          <StackedAreaChart data={metrics.weeklyActivity} />
+          <StackedAreaChart data={metrics?.weeklyActivity || []} />
         </ChartContainer>
 
         {/* Skills Radar Chart & Impact Timeline */}
