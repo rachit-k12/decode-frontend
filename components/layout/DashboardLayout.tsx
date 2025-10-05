@@ -66,7 +66,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState("sarah_maintainer");
   const pathname = usePathname();
   const { username, setUsername } = useUsername();
 
@@ -161,6 +161,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <Search className="h-4 w-4" />
                 </button>
               </div>
+              <p className="text-xs text-gray-600 mt-1">
+                Use this default username to explore sample data
+              </p>
               {username && (
                 <div className="flex items-center justify-between text-xs text-gray-600">
                   <span>Current: {username}</span>
