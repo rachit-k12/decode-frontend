@@ -7,14 +7,14 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DKMC - Maintainer Dashboard",
+  title: "Triager",
   verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION! },
   description:
-    "DKMC - Developer & Maintainer Dashboard that surfaces maintainer efforts including reviews, discussions, issue triage, PR comments, mentorship, docs, and CI fixes",
+    "Triager - Maintainer Dashboard that surfaces maintainer efforts including reviews, discussions, issue triage, PR comments, mentorship, docs, and CI fixes",
   keywords:
-    "DKMC, developer dashboard, maintainer dashboard, GitHub analytics, open source, code reviews, issue triage, PR management, developer productivity",
+    "Triager, maintainer dashboard, GitHub analytics, open source, code reviews, issue triage, PR management, developer productivity",
   openGraph: {
-    title: "DKMC - Maintainer Dashboard",
+    title: "Triager - Maintainer Dashboard",
     description:
       "Surface and track maintainer efforts including reviews, discussions, issue triage, PR comments, mentorship, docs, and CI fixes",
     type: "website",
